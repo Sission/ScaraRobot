@@ -48,6 +48,8 @@
     <parent link="baselink"/>
     <child link="revolute_link1"/>
   </joint>
+<gazebo reference="revolute_joint_1">
+</gazebo>
 
    <!-- Link 1-->
   <link name="revolute_link1">
@@ -151,7 +153,7 @@
     <parent link="link3"/>
     <child link="revolute_link2"/>
   </joint>
-<gazebo reference="revolute_cylinder2">
+<gazebo reference="revolute_joint_2">
 </gazebo>
    <!-- Link 4-->
   <link name="revolute_link2">
@@ -222,7 +224,7 @@
     <parent link="link5"/>
     <child link="gripper_prismatic"/>
   </joint>
-<gazebo reference="prismatic_arm">
+<gazebo reference="prismatic_joint">
 </gazebo>
 
    <!-- Link 6-->
