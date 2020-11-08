@@ -41,7 +41,7 @@
   </link>
 
    <!-- Joint 1-->
-  <joint name="revolute_cylinder1" type="revolute">
+  <joint name="revolute_joint_1" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-3.1415926535897931" upper="3.1415926535897931" velocity="0.1"/>
     <origin rpy="0 0 0" xyz="0 0 0.3"/>
@@ -144,7 +144,7 @@
   </link>
 
    <!-- Joint 4-->
-  <joint name="revolute_cylinder2" type="revolute">
+  <joint name="revolute_joint_2" type="revolute">
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-3" upper="3" velocity="0.1"/>
     <origin rpy="0 0 0" xyz="0.6 0 -0.25"/>
@@ -215,7 +215,7 @@
   </link>
 
    <!-- Joint 6-->
-  <joint name="prismatic_arm" type="prismatic">
+  <joint name="prismatic_joint" type="prismatic">
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-0.5" upper="0.5" velocity="0.1"/>
     <origin rpy="0 0 0" xyz="0.4 0 -0.05"/>

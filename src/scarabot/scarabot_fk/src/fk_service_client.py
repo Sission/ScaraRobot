@@ -52,9 +52,9 @@ class FkService:
         return result.position[0]
 
     def cal_end_effector_pose(self):
-        theta1 = self.read_joint_value("revolute_cylinder1")
-        theta2 = self.read_joint_value("revolute_cylinder2")
-        d = self.read_joint_value("prismatic_arm")
+        theta1 = self.read_joint_value("revolute_joint_1")
+        theta2 = self.read_joint_value("revolute_joint_2")
+        d = self.read_joint_value("prismatic_joint")
         homogenousMatrix = homogenousTransform([theta1, theta2, d])
         self.eepose.position.x = np.float64(homogenousMatrix[0, 3])
         self.eepose.position.y = np.float64(homogenousMatrix[1, 3])
