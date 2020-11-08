@@ -7,10 +7,9 @@ import numpy as np
 import math
 
 l1_r = 0.615
-l1_z = 1.135
+l1_z = 1.335
 l2 = 0.4
-l3 = 0.3
-z_start = 0.835
+l3 = 0.0
 
 def homogenousTransform(jointValues):
     [q1, q2, q3] = jointValues
@@ -55,7 +54,8 @@ class FkService:
         theta1 = self.read_joint_value("revolute_joint_1")
         theta2 = self.read_joint_value("revolute_joint_2")
         d = self.read_joint_value("prismatic_joint")
-        homogenousMatrix = homogenousTransform([theta1, theta2, d])
+        print(d)
+        homogenousMatrix = homogenousTransform([theta1, theta2, -d])
         self.eepose.position.x = np.float64(homogenousMatrix[0, 3])
         self.eepose.position.y = np.float64(homogenousMatrix[1, 3])
         self.eepose.position.z = np.float64(homogenousMatrix[2, 3])

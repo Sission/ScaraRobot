@@ -254,6 +254,7 @@
   </link>
 
 <gazebo reference="gripper_prismatic">
+  <turnGravityOff>true</turnGravityOff>
   <material>Gazebo/Grey</material>
 </gazebo>
 
@@ -263,7 +264,7 @@
     <origin rpy="0 0 0" xyz="0.4 0 0"/>
   </joint>
 
-   <!-- Link 4-->
+   <!-- Link 7-->
   <link name="link7">
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
