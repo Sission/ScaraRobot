@@ -7,12 +7,12 @@ from gazebo_msgs.msg import LinkStates
 import numpy as np
 import math
 
-l1_r = 0.615
-l1_z = 1.335
-l2 = 0.4
+l1_r = 0.62
+l1_z = 1.68
+l2 = 0.5
 l3 = 0.0
 DEBUG = True
-VERBOSE = True
+VERBOSE = False
 
 def homogenousTransform(jointValues):
     [q1, q2, q3] = jointValues
