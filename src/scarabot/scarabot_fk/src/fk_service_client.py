@@ -29,7 +29,7 @@ def homogenousTransform(jointValues):
     revolute_link2_transform = np.array([
         [math.cos(q2), math.sin(q2),0,l2*math.cos(q2)],
         [math.sin(q2), -math.cos(q2),0,l2*math.sin(q2)],
-        [0,0,-1,0],
+        [0,0,1,0],
         [0,0,0,1]])
     ret = np.matmul(ret, revolute_link2_transform)
     prismatic_link_transform = np.array([
@@ -59,7 +59,7 @@ class FkService:
         theta1 = self.read_joint_value("revolute_joint_1")
         theta2 = self.read_joint_value("revolute_joint_2")
         d = self.read_joint_value("prismatic_joint")
-        homogenousMatrix = homogenousTransform([theta1, theta2, -d])
+        homogenousMatrix = homogenousTransform([theta1, theta2, d])
         self.eepose.position.x = np.float64(homogenousMatrix[0, 3])
         self.eepose.position.y = np.float64(homogenousMatrix[1, 3])
         self.eepose.position.z = np.float64(homogenousMatrix[2, 3])
