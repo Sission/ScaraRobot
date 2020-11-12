@@ -36,11 +36,10 @@ class ControlService:
         theta1 = self.read_joint_value("revolute_joint_1")
         theta2 = self.read_joint_value("revolute_joint_2")
         d = self.read_joint_value("prismatic_joint")
-        if(VERBOSE):
-            rospy.loginfo("Current joints:")
-            rospy.loginfo(theta1)
-            rospy.loginfo(theta2)
-            rospy.loginfo(d)
+        rospy.loginfo("Current joints:")
+        rospy.loginfo(theta1)
+        rospy.loginfo(theta2)
+        rospy.loginfo(d)
 
 
 if __name__ == '__main__':
