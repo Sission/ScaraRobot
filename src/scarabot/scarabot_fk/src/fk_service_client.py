@@ -7,38 +7,16 @@ from gazebo_msgs.msg import LinkStates
 import numpy as np
 import math
 
-l1_r = 0.62
-l1_z = 1.68
-l2 = 0.5
-l3 = 0.0
 DEBUG = True
 VERBOSE = False
 
-def homogenousTransform(jointValues):
-    [q1, q2, q3] = jointValues
-    ret = np.array([[1,0,0,0],
-                    [0,1,0,0],
-                    [0,0,1,0],
-                    [0,0,0,1]])
-    revolute_link1_transform = np.array([
-        [math.cos(q1),-math.sin(q1),0,l1_r*math.cos(q1)],
-        [math.sin(q1), math.cos(q1),0,l1_r*math.sin(q1)],
-        [0,0,1,l1_z],
-        [0,0,0,1]])
-    ret = np.matmul(ret, revolute_link1_transform)
-    revolute_link2_transform = np.array([
-        [math.cos(q2), math.sin(q2),0,l2*math.cos(q2)],
-        [math.sin(q2), -math.cos(q2),0,l2*math.sin(q2)],
-        [0,0,1,0],
-        [0,0,0,1]])
-    ret = np.matmul(ret, revolute_link2_transform)
-    prismatic_link_transform = np.array([
-        [1,0,0,0],
-        [0,1,0,0],
-        [0,0,1,l3+q3],
-        [0,0,0,1]])
-    ret = np.matmul(ret, prismatic_link_transform)
-    return ret
+def tranformationmatrix(t, d, a, al):
+    trans = np.array([[math.cos(t), -math.sin(t) * math.cos(al), math.sin(t) * math.sin(al), a * math.cos(t)],
+                      [math.sin(t), math.cos(t) * math.cos(al), -math.cos(t) * math.sin(al), a * math.sin(t)],
+                      [0, math.sin(al), math.cos(al), d],
+                      [0, 0, 0, 1]])
+    return trans
+
 
 class FkService:
     def __init__(self):
@@ -59,17 +37,27 @@ class FkService:
         theta1 = self.read_joint_value("revolute_joint_1")
         theta2 = self.read_joint_value("revolute_joint_2")
         d = self.read_joint_value("prismatic_joint")
-        homogenousMatrix = homogenousTransform([theta1, theta2, d])
-        self.eepose.position.x = np.float64(homogenousMatrix[0, 3])
-        self.eepose.position.y = np.float64(homogenousMatrix[1, 3])
-        self.eepose.position.z = np.float64(homogenousMatrix[2, 3])
+        trans1 = tranformationmatrix(0, 0.6, 0, 0)
+        trans2 = tranformationmatrix(theta1, 0.83, 0.62, 0)
+        trans3 = tranformationmatrix(theta2, 0.25, 0.5, 0)
+        trans4 = tranformationmatrix(0, d, 0, 0)
+        A1 = np.matmul(trans1, trans2)
+        A12 = np.matmul(A1, trans3)
+        H = np.matmul(A12, trans4)
+        # homogenousMatrix = homogenousTransform([theta1, theta2, d])
+        self.eepose.position.x = np.float64(H[0, 3])
+        self.eepose.position.y = np.float64(H[1, 3])
+        self.eepose.position.z = np.float64(H[2, 3])
+        # self.eepose.position.x = np.float64(homogenousMatrix[0, 3])
+        # self.eepose.position.y = np.float64(homogenousMatrix[1, 3])
+        # self.eepose.position.z = np.float64(homogenousMatrix[2, 3])
         self.pub.publish(self.eepose)
-        rospy.loginfo("Forward Kinematics calculated pose:")
-        rospy.loginfo(self.eepose.position)
-        if(VERBOSE):
-            rospy.loginfo("True pose:")
-            rospy.loginfo(self.trueEepose)
-        if(DEBUG):
+        rospy.loginfo("Forward Kinematics calculated")
+        # rospy.loginfo(self.eepose.position)
+        # if (VERBOSE):
+        #     rospy.loginfo("True pose:")
+        #     rospy.loginfo(self.trueEepose)
+        if (DEBUG):
             self.printError()
 
     def printError(self):
@@ -82,7 +70,6 @@ class FkService:
             rospy.loginfo(error.position)
         except Exception as e:
             rospy.logdebug("Pose not initialized")
-        
 
     def updateCallback(self, data):
         self.trueEepose = data.pose[4].position
