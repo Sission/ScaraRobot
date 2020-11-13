@@ -1,0 +1,255 @@
+<?xml version="1.0" ?>
+<robot name="scarabot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/scarabot</robotNamespace>
+        </plugin>
+    </gazebo>
+
+
+    <!-- MACROS -->
+<xacro:property name="m" value="1" />
+<xacro:macro name="default_link_geometry">
+    <geometry>
+        <box size="0.04 0.04 0.6"/>
+    </geometry>
+</xacro:macro>
+
+<xacro:macro name="revolute_link" params="number">
+  <link name="revolute_link${number}">
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <geometry>
+        <cylinder radius="0.15" length="0.5"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <geometry>
+        <cylinder radius="0.15" length="0.5"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+    <mass value="1"/>
+    <inertia
+      ixx="0" ixy="0.0" ixz="0.0"
+      iyy="0" iyz="0.0"
+      izz="0"/>
+    </inertial>
+  </link>
+<gazebo reference="revolute_link${number}">
+  <material>Gazebo/Grey</material>
+</gazebo>
+</xacro:macro>
+<xacro:macro name="vertical_link" params="number">
+  <link name="vertical_link${number}">
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.3"/>
+      <geometry>
+        <box size="0.04 0.04 0.6"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3"/>
+      <xacro:default_link_geometry/>
+    </visual>
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3"/>
+    <mass value="${m}"/>
+    <inertia
+      ixx="0" ixy="0.0" ixz="0.0"
+      iyy="0" iyz="0.0"
+      izz="0"/>
+    </inertial>
+  </link>
+</xacro:macro>
+<xacro:macro name="horizontal_link" params="number">
+  <link name="horizontal_link${number}">
+    <collision>
+      <origin rpy="0 0 0" xyz="0.25 0 0"/>
+      <geometry>
+        <box size="0.5 0.04 0.04"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0.25 0 0"/>
+      <geometry>
+        <box size="0.5 0.04 0.04"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.25 0 0"/>
+    <mass value="1"/>
+    <inertia
+      ixx="0" ixy="0.0" ixz="0.0"
+      iyy="0" iyz="0.0"
+      izz="0"/>
+    </inertial>
+  </link>
+</xacro:macro>
+<xacro:macro name="prismatic_link">
+  <link name="prismatic_link">
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+
+    <visual>
+       <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="0.001"/>
+    <inertia
+      ixx="0" ixy="0.0" ixz="0.0"
+      iyy="0" iyz="0.0"
+      izz="0.1"/>
+    </inertial>
+  </link>
+    <gazebo reference="prismatic_link">
+  <material>Gazebo/Grey</material>
+        <turnGravityOff>true</turnGravityOff>
+</gazebo>
+</xacro:macro>
+
+<!--<xacro:macro name="transmission" params="number">-->
+<!--    <transmission name="tran${number}">-->
+<!--        <type>transmission_interface/SimpleTransmission</type>-->
+<!--        <joint name="revolute_M${number}_joint">-->
+<!--            <hardwareInterface>EffortJointInterface</hardwareInterface>-->
+<!--        </joint>-->
+<!--        <actuator name="motor${number}">-->
+<!--            <hardwareInterface>EffortJointInterface</hardwareInterface>-->
+<!--            <mechanicalReduction>1</mechanicalReduction>-->
+<!--        </actuator>-->
+<!--    </transmission>-->
+<!--</xacro:macro>-->
+
+
+<!-- * * * Link Definitions * * * -->
+  <link name="world"/>
+
+<!-- * * * joint fixed with world * * * -->
+  <joint name="worldjoint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <parent link="world"/>
+    <child link="vertical_link1"/>
+  </joint>
+
+<!-- * * * vertical_link1 * * * -->
+  <xacro:vertical_link number="1"/>
+
+<!-- * * * revolute_joint_1 * * * -->
+  <joint name="revolute_joint_1" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-3.1415926535897931" upper="3.1415926535897931" velocity="0.1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.6"/>
+    <parent link="vertical_link1"/>
+    <child link="revolute_link1"/>
+  </joint>
+
+<!-- * * * revolute_link_1 * * * -->
+  <xacro:revolute_link number="1"/>
+<!--    <xacro:transmission number="1"/>-->
+
+<!-- * * * revolute1-vertical_link2  fixed * * * -->
+  <joint name="joint_r1_v2" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0.5"/>
+    <parent link="revolute_link1"/>
+    <child link="vertical_link2"/>
+  </joint>
+<!-- * * * vertical_link2 * * * -->
+  <xacro:vertical_link number="2"/>
+
+<!-- * * * vertical_link2-horizontal_link1 fixed* * * -->
+  <joint name="joint_v2_h1" type="fixed">
+    <origin rpy="0 0 0" xyz="0.02 0 0.58"/>
+    <parent link="vertical_link2"/>
+    <child link="horizontal_link1"/>
+  </joint>
+
+<!-- * * * horizontal_link1 * * * -->
+  <xacro:horizontal_link number="1"/>
+
+<!-- * * * revolute_joint_2 * * * -->
+  <joint name="revolute_joint_2" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-3" upper="3" velocity="0.1"/>
+    <origin rpy="0 0 0" xyz="0.6 0 -0.25"/>
+    <parent link="horizontal_link1"/>
+    <child link="revolute_link2"/>
+  </joint>
+
+<!-- * * * revolute_link_2 * * * -->
+  <xacro:revolute_link number="2"/>
+<!--    <xacro:transmission number="2"/>-->
+
+<!-- * * * vertical_link2-horizontal_link2 fixed* * * -->
+  <joint name="joint_v2_h2" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0.25"/>
+    <parent link="revolute_link2"/>
+    <child link="horizontal_link2"/>
+  </joint>
+
+<!-- * * * horizontal_link2 * * * -->
+  <xacro:horizontal_link number="2"/>
+
+<!-- * * * prismatic_joint * * * -->
+  <joint name="prismatic_joint" type="prismatic">
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-0.5" upper="0.5" velocity="0.1"/>
+    <origin rpy="0 0 0" xyz="0.5 0 0"/>
+    <parent link="horizontal_link2"/>
+    <child link="prismatic_link"/>
+  </joint>
+
+<!-- * * * prismatic_link * * * -->
+  <xacro:prismatic_link/>
+
+<!-- * * * moving_link_horizontal_link2  fixed* * * -->
+  <joint name="joint_h2_movelink" type="fixed">
+    <parent link="horizontal_link2"/>
+    <child link="moving_link"/>
+    <origin rpy="0 0 0" xyz="0.5 0 0"/>
+  </joint>
+
+<!-- * * * moving_link * * * -->
+  <link name="moving_link">
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="1"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="1"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="1"/>
+    <inertia
+      ixx="0" ixy="0.0" ixz="0.0"
+      iyy="0" iyz="0.0"
+      izz="0"/>
+    </inertial>
+  </link>
+</robot>
