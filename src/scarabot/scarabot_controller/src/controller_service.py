@@ -2,44 +2,50 @@
 
 import rospy
 from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest, ApplyJointEffort, ApplyJointEffortRequest
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Pose
 import numpy as np
 import math
-from scarabot_controller.msg import JointEffortRequest
 
-DEBUG = True
-VERBOSE = False
 
 class ControlService:
     def __init__(self):
         rospy.wait_for_service('/gazebo/get_joint_properties')
+        self.control_service = rospy.ServiceProxy('/gazebo/get_joint_properties', GetJointProperties)
+        self.joint_obj = GetJointPropertiesRequest()
         rospy.wait_for_service('/gazebo/apply_joint_effort')
-        self.monitoring_service = rospy.ServiceProxy('/gazebo/get_joint_properties', GetJointProperties)
-        self.object_name = GetJointPropertiesRequest()
-        self.control_service = rospy.ServiceProxy('/gazebo/apply_joint_effort', ApplyJointEffort)
-        self.target_name = ApplyJointEffortRequest()
-        self.sub = rospy.Subscriber("scarabot_controller_requests", JointEffortRequest, self.request_joint_effort_callback, queue_size=1)
-        #self.pub = rospy.Publisher('/gazebo/apply_joint_effort', Pose, queue_size=1)
+        self.control_effort = rospy.ServiceProxy('/gazebo/apply_joint_effort', ApplyJointEffort)
+        self.effort_obj = ApplyJointEffortRequest()
+        self.reference_pose_sub = rospy.Subscriber('reference_position_pub', Float64, self.cal_effort)
+        self._joint_name = "prismatic_joint"
+        self._effort = 0
+        self._start_time_secs = 0
+        self._duration_secs = 1
+        self._d = 0
 
-    def read_joint_value(self, joint_name):
-        self.object_name.joint_name = joint_name
-        result = self.monitoring_service(self.object_name)
-        return result.position[0]
+    def end_effector_value(self):
+        self.joint_obj.joint_name = self._joint_name
+        result = self.control_service(self.joint_obj)
+        self._d = result.position[0]
+        rospy.loginfo("Current d values:")
+        rospy.loginfo(self._d)
 
-    def request_joint_effort_callback(self, request):
-        self.target_name.joint_name = request.joint_name
-        self.target_name.effort = request.effort
-        self.target_name.duration = request.duration
-        result = self.control_service(self.target_name)
+    def cal_effort(self, msg):
+        self.end_effector_value()
+        rospy.loginfo("A reference position has been received")
+        reference_location = msg.data
+        self._effort = 10 + self._d
+        # calculate effort here
 
-    def log_joint_values(self):
-        theta1 = self.read_joint_value("revolute_joint_1")
-        theta2 = self.read_joint_value("revolute_joint_2")
-        d = self.read_joint_value("prismatic_joint")
-        rospy.loginfo("Current joints:")
-        rospy.loginfo(theta1)
-        rospy.loginfo(theta2)
-        rospy.loginfo(d)
+        self.effort_obj.joint_name = self._joint_name
+        self.effort_obj.effort = self._effort
+        self.effort_obj.start_time.secs = self._start_time_secs
+        self.effort_obj.duration.secs = self._duration_secs
+        result = self.control_effort(self.effort_obj)
+        if result.success:
+            rospy.loginfo("The effort has applied successfully")
+        else:
+            rospy.logdebug("The effort did not been applied")
 
 
 if __name__ == '__main__':
@@ -47,5 +53,5 @@ if __name__ == '__main__':
     rate = rospy.Rate(10)
     control_node = ControlService()
     while not rospy.is_shutdown():
-        control_node.log_joint_values()
+        control_node.__init__()
         rate.sleep()
