@@ -7,6 +7,8 @@ from geometry_msgs.msg import Pose
 import numpy as np
 import math
 
+DEBUG=False
+VERBOSE=False
 
 class ControlService:
     def __init__(self):
@@ -31,42 +33,49 @@ class ControlService:
         self.joint_obj.joint_name = self._joint_name
         result = self.control_service(self.joint_obj)
         self._d = result.position[0]
-        rospy.loginfo("Current d values:")
-        rospy.loginfo(self._d)
+        if(VERBOSE):
+            rospy.loginfo("Current d values:")
+            rospy.loginfo(self._d)
 
     def pd_controller(self, ref):
         e = ref - self._d
-        print("ref is ", ref)
-        print("current d is ", self._d)
-        print("e is ", e)
+        if(VERBOSE):
+            print("ref is ", ref)
+            print("current d is ", self._d)
+            print("e is ", e)
+            print("txx is", t)
+            print("dT is", delta_t)
+            print("e_dot", e_dot)
         t = rospy.get_time()
-        print("txx is", t)
+        
         delta_t = t - self._old_t
-        print("dT is", delta_t)
         e_dot = (e - self._old_e) / delta_t
-        print("e_dot", e_dot)
         self._effort = self._kp * e + self._kd * e_dot
-        print("duration is ", self._duration_n_secs)
-        print("effort is ", self._effort)
-        self._old_e = e
-        print("e is ", self._old_e)
-        self._old_t = t
-        print("t is ", self._old_t)
         self._duration_n_secs = int(min((delta_t)*1e9, 1e8))
+        if(DEBUG):
+            print("duration is ", self._duration_n_secs)
+            print("effort is ", self._effort)
+
+        self._old_e = e
+        self._old_t = t
+        if(VERBOSE):
+            print("e is ", self._old_e)
+            print("t is ", self._old_t)
 
     def callback(self, msg):
         self._ref = msg.data
-        rospy.loginfo("A reference position has been received")
+        if(DEBUG):
+            rospy.loginfo("A reference position has been received")
 
     def cal_effort(self):
         self.end_effector_value()
         rospy.Subscriber('reference_position_pub', Float64, self.callback)
         reference_location = self._ref
-        # print("FU", self.reference_pose_sub.callback_args)
-        print("current d1 is ", self._d)
         self.pd_controller(reference_location)
         self.effort_obj.joint_name = self._joint_name
-        print("effort is", self._effort)
+        if(VERBOSE):
+            print("current d1 is ", self._d)
+            print("effort is", self._effort)
         if abs(self._effort)< 0.01:
             self.effort_obj.effort = 0
         else:
@@ -74,9 +83,9 @@ class ControlService:
             self.effort_obj.start_time.secs = self._start_time_secs
             self.effort_obj.duration.nsecs = self._duration_n_secs
         result = self.control_effort(self.effort_obj)
-        if result.success:
+        if(result.success and DEBUG):
             rospy.loginfo("The effort has applied successfully")
-        else:
+        elif(DEBUG):
             rospy.logdebug("The effort did not been applied")
 
 
