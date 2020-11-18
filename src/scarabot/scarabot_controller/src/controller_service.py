@@ -20,7 +20,7 @@ class ControlService:
         self._effort = 0
         self._ref = 0
         self._start_time_secs = 0
-        self._duration_secs = 1
+        self._duration_n_secs = 10000000
         self._d = 0
         self._old_t = 0
         self._old_e = 0
@@ -42,16 +42,17 @@ class ControlService:
         t = rospy.get_time()
         print("txx is", t)
         delta_t = t - self._old_t
+        print("dT is", delta_t)
         e_dot = (e - self._old_e) / delta_t
         print("e_dot", e_dot)
         self._effort = self._kp * e + self._kd * e_dot
-        print("duration is ", self._duration_secs)
+        print("duration is ", self._duration_n_secs)
         print("effort is ", self._effort)
         self._old_e = e
         print("e is ", self._old_e)
         self._old_t = t
         print("t is ", self._old_t)
-        # self._duration_secs = delta_t*2
+        self._duration_n_secs = int(min((delta_t)*1e9, 1e8))
 
     def callback(self, msg):
         self._ref = msg.data
@@ -71,7 +72,7 @@ class ControlService:
         else:
             self.effort_obj.effort = self._effort
             self.effort_obj.start_time.secs = self._start_time_secs
-            self.effort_obj.duration.secs = self._duration_secs
+            self.effort_obj.duration.nsecs = self._duration_n_secs
         result = self.control_effort(self.effort_obj)
         if result.success:
             rospy.loginfo("The effort has applied successfully")
@@ -82,7 +83,7 @@ class ControlService:
 
 if __name__ == '__main__':
     rospy.init_node('controller', anonymous=True)
-    rate = rospy.Rate(60)
+    rate = rospy.Rate(100)
     control_node = ControlService()
     while not rospy.is_shutdown():
         control_node.cal_effort()
