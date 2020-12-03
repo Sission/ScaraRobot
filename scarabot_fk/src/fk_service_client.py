@@ -6,41 +6,9 @@ from geometry_msgs.msg import Pose
 from gazebo_msgs.msg import LinkStates
 import numpy as np
 import math
-#
-# l1_r = 0.62
-# l1_z = 1.68
-# l2 = 0.5
-# l3 = 0.0
+
 DEBUG = True
 VERBOSE = False
-
-
-# def homogenousTransform(jointValues):
-#     [q1, q2, q3] = jointValues
-#     ret = np.array([[1, 0, 0, 0],
-#                     [0, 1, 0, 0],
-#                     [0, 0, 1, 0],
-#                     [0, 0, 0, 1]])
-#     revolute_link1_transform = np.array([
-#         [math.cos(q1), -math.sin(q1), 0, l1_r * math.cos(q1)],
-#         [math.sin(q1), math.cos(q1), 0, l1_r * math.sin(q1)],
-#         [0, 0, 1, l1_z],
-#         [0, 0, 0, 1]])
-#     ret = np.matmul(ret, revolute_link1_transform)
-#     revolute_link2_transform = np.array([
-#         [math.cos(q2), math.sin(q2), 0, l2 * math.cos(q2)],
-#         [math.sin(q2), -math.cos(q2), 0, l2 * math.sin(q2)],
-#         [0, 0, -1, 0],
-#         [0, 0, 0, 1]])
-#     ret = np.matmul(ret, revolute_link2_transform)
-#     prismatic_link_transform = np.array([
-#         [1, 0, 0, 0],
-#         [0, 1, 0, 0],
-#         [0, 0, 1, l3 + q3],
-#         [0, 0, 0, 1]])
-#     ret = np.matmul(ret, prismatic_link_transform)
-#     return ret
-
 
 def tranformationmatrix(t, d, a, al):
     trans = np.array([[math.cos(t), -math.sin(t) * math.cos(al), math.sin(t) * math.sin(al), a * math.cos(t)],
