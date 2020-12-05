@@ -4,13 +4,14 @@ import numpy as np
 import rospy
 from scarabot_controller.srv import GetEndEffectorVelocity, GetEndEffectorVelocityResponse, GetJointVelocity, \
     GetJointVelocityResponse
+from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest
 from std_msgs.msg import Float64
 import csv
 import os
 
 DEBUG = True
 VERBOSE = False
-
+fk_service = None
 
 def tranformationmatrix(t, d, a, al):
     trans = np.array([[math.cos(t), -math.sin(t) * math.cos(al), math.sin(t) * math.sin(al), a * math.cos(t)],
@@ -49,9 +50,9 @@ def jaco_matrix(t1, t2, d):
 
 def eeVelocityToJointV(eV):
     # joint angles
-    q1 = math.pi / 2
-    q2 = math.pi / 2
-    q3 = 0
+    q1 = read_joint_value("revolute_joint_1")
+    q2 = read_joint_value("revolute_joint_2")
+    q3 = read_joint_value("prismatic_joint")
 
     # end-effector velocities
     eeVelMatrix = np.array([eV.vx,
@@ -71,12 +72,18 @@ def eeVelocityToJointV(eV):
         print("Joint velocities: " + np.array2string(jointVel))
     return jointVel
 
+def read_joint_value(joint_name):
+    global fk_service
+    object_name = GetJointPropertiesRequest()
+    object_name.joint_name = joint_name
+    result = fk_service(object_name)
+    return result.position[0]
 
 def jointToEndEffector(jointVelocities):
     # joint angles
-    q1 = math.pi / 2
-    q2 = math.pi / 2
-    q3 = 0
+    q1 = read_joint_value("revolute_joint_1")
+    q2 = read_joint_value("revolute_joint_2")
+    q3 = read_joint_value("prismatic_joint")
 
     # joint velocities
     [q1dot, q2dot, q3dot] = [jointVelocities.q1, jointVelocities.q2, jointVelocities.q3]
@@ -122,8 +129,11 @@ def e2jCallback(ee):
 
 
 def initVelocityServer():
+    global fk_service
     rospy.init_node('velocity_service', anonymous=True)
     rate = rospy.Rate(100)
+    rospy.wait_for_service('/gazebo/get_joint_properties')
+    fk_service = rospy.ServiceProxy('/gazebo/get_joint_properties', GetJointProperties)
     s1 = rospy.Service('Joint2EEVelocity', GetEndEffectorVelocity, j2eCallback)
     s2 = rospy.Service('EE2JointVelocity', GetJointVelocity, e2jCallback)
     rospy.spin()

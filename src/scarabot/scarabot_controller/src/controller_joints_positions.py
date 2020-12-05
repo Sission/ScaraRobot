@@ -82,7 +82,7 @@ class ControlService:
                 self.effort_obj.start_time.secs = self._start_time_secs
                 self.effort_obj.duration.nsecs = self._duration_n_secs
             res = self.control_effort(self.effort_obj)
-            print res.success
+            #print(res.success)
         # prismatic_location = self._ref[1]
         # self.pd_controller(prismatic_location)
         # self.effort_obj.joint_name = self._joint_name1
