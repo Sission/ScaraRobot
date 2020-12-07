@@ -17,7 +17,7 @@ class ControlService:
         rospy.wait_for_service('/gazebo/apply_joint_effort')
         self.control_effort = rospy.ServiceProxy('/gazebo/apply_joint_effort', ApplyJointEffort)
         self.effort_obj = ApplyJointEffortRequest()
-        self._joint_name = "revolute_joint_1"
+        self._joint_name = "prismatic_joint"
         self._effort = 0
         self._ref = 0
         self._start_time_secs = 0

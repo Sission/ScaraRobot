@@ -108,7 +108,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES scarabot_controller
-#  CATKIN_DEPENDS rospy
+  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
 )
 

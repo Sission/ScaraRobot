@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<launch> 
+<launch>
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
@@ -15,7 +15,7 @@
   </include>
 
   <param name="scarabot_description"
-    command="$(find xacro)/xacro --inorder '$(find scarabot_description)/urdf/robot.urdf'" />
+    command="$(find xacro)/xacro --inorder '$(find scarabot_description)/urdf/scarabot_y_init.urdf.xacro'" />
 
   <node name="my_robot_spawn" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
         args="-urdf -param scarabot_description -model scarabot" />

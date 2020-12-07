@@ -4,6 +4,7 @@ import numpy as np
 import rospy
 from scarabot_controller.srv import GetEndEffectorVelocity, GetEndEffectorVelocityResponse, GetJointVelocity, \
     GetJointVelocityResponse
+from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest
 from std_msgs.msg import Float64
 import csv
 import os
@@ -49,9 +50,9 @@ def jaco_matrix(t1, t2, d):
 
 def eeVelocityToJointV(eV):
     # joint angles
-    q1 = math.pi / 2
-    q2 = math.pi / 2
-    q3 = 0
+    q1 = read_joint_value("revolute_joint_1")
+    q2 = read_joint_value("revolute_joint_2")
+    q3 = read_joint_value("prismatic_joint")
 
     # end-effector velocities
     eeVelMatrix = np.array([eV.vx,
@@ -67,16 +68,23 @@ def eeVelocityToJointV(eV):
 
     jointVel = np.matmul(j_plus, eeVelMatrix)
 
-    if (DEBUG):
-        print("Joint velocities: " + np.array2string(jointVel))
     return jointVel
+
+
+def read_joint_value(joint_name):
+    rospy.wait_for_service('/gazebo/get_joint_properties')
+    fk_service = rospy.ServiceProxy('/gazebo/get_joint_properties', GetJointProperties)
+    object_name = GetJointPropertiesRequest()
+    object_name.joint_name = joint_name
+    result = fk_service(object_name)
+    return result.rate[0]
 
 
 def jointToEndEffector(jointVelocities):
     # joint angles
-    q1 = math.pi / 2
-    q2 = math.pi / 2
-    q3 = 0
+    q1 = read_joint_value("revolute_joint_1")
+    q2 = read_joint_value("revolute_joint_2")
+    q3 = read_joint_value("prismatic_joint")
 
     # joint velocities
     [q1dot, q2dot, q3dot] = [jointVelocities.q1, jointVelocities.q2, jointVelocities.q3]
@@ -87,8 +95,6 @@ def jointToEndEffector(jointVelocities):
     jacobian = jaco_matrix(q1, q2, q3)
 
     ee = np.matmul(jacobian, jointmat)
-    if DEBUG:
-        print("End effector velocities: " + np.array2string(ee))
     return ee
 
 
@@ -109,6 +115,9 @@ def j2eCallback(jV):
     ret.wx = ee[3]
     ret.wy = ee[4]
     ret.wz = ee[5]
+    if DEBUG:
+        print "The end-effector velocity is "
+        print ret
     return ret
 
 
@@ -118,6 +127,9 @@ def e2jCallback(ee):
     ret.q1 = jV[0]
     ret.q2 = jV[1]
     ret.q3 = jV[2]
+    if DEBUG:
+        print "The joint velocity is "
+        print ret
     return ret
 
 
