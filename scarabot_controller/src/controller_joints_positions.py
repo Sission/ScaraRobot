@@ -5,7 +5,7 @@ from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest, Apply
 from scarabot_controller.msg import Reference
 import numpy as np
 
-DEBUG = False
+DEBUG = True
 VERBOSE = False
 
 
@@ -25,8 +25,9 @@ class ControlService:
         self._d = np.zeros(3)
         self._old_t = np.zeros(3)
         self._old_e = np.zeros(3)
-        self._kp = 100, 100, 40
-        self._kd = 40, 40, 20
+        self._kp = 50, 50, 20
+        self._kd = 4, 4, 2
+        self._working = [False, False, False]
 
     def end_effector_value(self, joint_name, i):
         self.joint_obj.joint_name = joint_name
@@ -62,22 +63,27 @@ class ControlService:
         self._ref[0] = msg.q1
         self._ref[1] = msg.q2
         self._ref[2] = msg.d
-        if DEBUG:
+        self._working = [True, True, True]
+        if VERBOSE:
             rospy.loginfo("A reference position has been received")
 
     def cal_effort(self):
         rospy.Subscriber('all_reference_position_pub', Reference, self.callback)
-        for i in range(3):
-            self.end_effector_value(self._joint_name[i], i)
-            self.pd_controller(self._ref[i], i)
-            self.effort_obj.joint_name = self._joint_name[i]
-            if abs(self._effort[i]) < 0.01:
-                self.effort_obj.effort = 0
-            else:
-                self.effort_obj.effort = self._effort[i]
-                self.effort_obj.start_time.secs = self._start_time_secs
-                self.effort_obj.duration.nsecs = self._duration_n_secs
-            res = self.control_effort(self.effort_obj)
+        if(any(self._working)):
+            for i in range(3):
+                self.end_effector_value(self._joint_name[i], i)
+                self.pd_controller(self._ref[i], i)
+                self.effort_obj.joint_name = self._joint_name[i]
+                if abs(self._effort[i]) < 0.01:
+                    self.effort_obj.effort = 0
+                    self._working[i] = False
+                    if(DEBUG and not any(self._working)):
+                        print("Finished")
+                else:
+                    self.effort_obj.effort = self._effort[i]
+                    self.effort_obj.start_time.secs = self._start_time_secs
+                    self.effort_obj.duration.nsecs = self._duration_n_secs
+                res = self.control_effort(self.effort_obj)
 
 
 if __name__ == '__main__':

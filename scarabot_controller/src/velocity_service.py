@@ -116,8 +116,8 @@ def j2eCallback(jV):
     ret.wy = ee[4]
     ret.wz = ee[5]
     if DEBUG:
-        print "The end-effector velocity is "
-        print ret
+        print("The end-effector velocity is ")
+        print(ret)
     return ret
 
 
@@ -128,8 +128,8 @@ def e2jCallback(ee):
     ret.q2 = jV[1]
     ret.q3 = jV[2]
     if DEBUG:
-        print "The joint velocity is "
-        print ret
+        print("The joint velocity is ")
+        print(ret)
     return ret
 
 
